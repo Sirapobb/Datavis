@@ -14,6 +14,8 @@ import plotly.graph_objects as go
 import shap
 import requests
 import os
+from catboost import CatBoostClassifier
+
 
 model = joblib.load("model.joblib")
 
@@ -104,7 +106,7 @@ st.set_page_config(
 
 # Font URL and local path
 #font_url = 'https://github.com/Phonbopit/sarabun-webfont/raw/master/fonts/thsarabunnew-webfont.ttf'
-font_path = "thsarabunnew-webfont.ttf"
+font_path = r"C:\Users\sirapob\Downloads\thsarabunnew-webfont.ttf"
 
 # Download the font if not already present
 #if not os.path.exists(font_path):
@@ -777,3 +779,66 @@ st.markdown(
     unsafe_allow_html=True
 )
 
+st.markdown('##### SHAP value of each token')
+
+# Handle categorical features
+cat_features = feature_df.select_dtypes(include=['object']).columns.tolist()
+feature_df = feature_df.apply(lambda row: fill_values(row, cat_features), axis=1)
+
+# SHAP explanation
+explainer = shap.Explainer(cbr)
+shap_values = explainer(feature_df)
+classes = cbr.classes_
+
+# Get the predicted labels from the model (assume it returns an ndarray)
+predicted_labels = cbr.predict(feature_df)
+
+    # Ensure we have a 1D array for easy handling
+if predicted_labels.ndim > 1:
+    predicted_labels = predicted_labels.flatten()  # Convert to 1D array if needed
+
+# Map tags to class indices
+label_to_class_idx = {
+    'ADDR': 0,
+    'LOC': 1,
+    'O': 2,
+    'POST': 3
+}
+
+col1,col2,col3 = st.columns((1,4,1))
+with col2:
+        
+    # Iterate over tokens and predicted labels to call plot_shap_waterfall
+    for instance_idx, label in enumerate(predicted_labels):
+        tk = tokens[instance_idx]
+
+        # Get the corresponding tag for the token
+        token_tag = tags[instance_idx]  # Assuming `tags` is the list of NER tags for tokens
+
+            # Highlight each token with its tag
+        highlighted_token = highlight_address(tk, [token_tag])
+
+        label_color = {
+        'O':"<span style='background-color: #FFB067; border-radius: 5px; padding: 2px;'>O</span>",
+        'LOC':"<span style='background-color: #FFED86; border-radius: 5px; padding: 2px;'>LOC</span>",
+        'POST':"<span style='background-color: #A2DCE7; border-radius: 5px; padding: 2px;'>POST</span>",
+        'ADDR':"<span style='background-color: #F8CCDC; border-radius: 5px; padding: 2px;'>ADDR</span>"
+        }
+
+        if token_tag in label_color:
+            mk_tag = label_color[token_tag]
+
+        st.markdown(
+            f"""
+            SHAP Value for each features of
+            Token:
+            {highlighted_token} <br>
+            Tag: {mk_tag}
+            """,
+            unsafe_allow_html=True
+        )
+
+        # Only plot SHAP waterfall for relevant tags
+        if label in label_to_class_idx:
+            class_idx = label_to_class_idx[label]
+            plot_shap_waterfall(instance_idx, class_idx)
