@@ -706,7 +706,7 @@ def fill_values(row, value_columns):
 
 
 
-cbr = joblib.load('catboost.joblib')
+cbr = joblib.load('catboosts_compressed.joblib')
 
 # Prepare the tokens and features
 tokens = long_text.split()[0:16]
