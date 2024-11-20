@@ -104,7 +104,7 @@ st.set_page_config(
 
 # Font URL and local path
 #font_url = 'https://github.com/Phonbopit/sarabun-webfont/raw/master/fonts/thsarabunnew-webfont.ttf'
-font_path = r"C:\Users\sirapob\Downloads\thsarabunnew-webfont.ttf"
+font_path = "thsarabunnew-webfont.ttf"
 
 # Download the font if not already present
 #if not os.path.exists(font_path):
