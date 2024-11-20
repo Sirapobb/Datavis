@@ -1,0 +1,11 @@
+streamlit
+pandas
+numpy
+matplotlib
+plotly
+joblib
+sklearn_crfsuite
+bs4
+seaborn
+catboost
+shap
